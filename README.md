@@ -11,6 +11,7 @@ A browser-based editorial pitch desk and production flatplan for annual reports 
 - Validate that the interior page count is a multiple of four
 - Switch between spreads and individual pages
 - Search and filter the editorial plan
+- Import and export complete flatplan JSON files
 - Export the plan as JSON
 - Automatic local browser storage
 - Responsive layout for desktop and mobile
