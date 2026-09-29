@@ -1,13 +1,16 @@
 # Annual Report Flatplan
 
-A lightweight, browser-based flatplan for annual reports and magazines.
+A browser-based editorial pitch desk and production flatplan for annual reports and magazines.
 
 ## Features
 
-- Arrange publication spreads with drag and drop
-- Track section, editorial status, owner, due date, and notes
-- Search and filter the plan
-- Add sections and spreads
+- Pitch stories, save working copy, and approve or deny ideas
+- Add photos, charts, quotes, advertisements, and other page elements
+- Drag approved items onto pages and build a basic page layout
+- Keep front cover, inside covers, and back cover separate from reader spreads
+- Validate that the interior page count is a multiple of four
+- Switch between spreads and individual pages
+- Search and filter the editorial plan
 - Export the plan as JSON
 - Automatic local browser storage
 - Responsive layout for desktop and mobile

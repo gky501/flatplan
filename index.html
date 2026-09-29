@@ -1,86 +1,14 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111827">
-  <title>Annual Report Flatplan</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111827'/%3E%3Cpath d='M14 16h16v32H14zm20 0h16v32H34z' fill='%23f7f2e8'/%3E%3Cpath d='M20 24h5M20 30h5M39 24h6M39 30h6M39 36h6' stroke='%23ec5b3f' stroke-width='3'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand"><span class="brand-mark">FP</span><div><strong>Annual Report</strong><small>2026 flatplan</small></div></div>
-    <div class="top-actions">
-      <button class="button ghost" id="resetBtn">Reset sample</button>
-      <button class="button dark" id="exportBtn">Export plan</button>
-    </div>
-  </header>
-
-  <main>
-    <section class="summary" aria-labelledby="project-title">
-      <div>
-        <p class="eyebrow">PUBLICATION WORKSPACE</p>
-        <h1 id="project-title" contenteditable="true" spellcheck="false">The Year in Perspective</h1>
-        <p class="meta"><span>ANNUAL REPORT</span><span>ISSUE 01</span><span>PRESS: 18 APR</span></p>
-      </div>
-      <div class="stats" aria-label="Project status">
-        <div><strong id="pageCount">28</strong><span>pages</span></div>
-        <div><strong id="readyCount">0</strong><span>ready</span></div>
-        <div><strong id="progressText">0%</strong><span>complete</span></div>
-      </div>
-    </section>
-
-    <section class="toolbar" aria-label="Flatplan controls">
-      <div class="view-switch" role="group" aria-label="View">
-        <button class="active" data-view="spreads">Spreads</button>
-        <button data-view="pages">Pages</button>
-      </div>
-      <div class="toolbar-actions">
-        <label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Find a page or owner"></label>
-        <button class="button light" id="addSpreadBtn">＋ Add spread</button>
-      </div>
-    </section>
-
-    <div class="workspace">
-      <aside class="sections-panel">
-        <div class="panel-heading"><h2>Sections</h2><button id="addSectionBtn" aria-label="Add section">＋</button></div>
-        <div id="sectionList"></div>
-        <div class="legend">
-          <h3>Status key</h3>
-          <p><i class="dot writing"></i> Writing</p>
-          <p><i class="dot review"></i> In review</p>
-          <p><i class="dot ready"></i> Ready</p>
-          <p><i class="dot planned"></i> Planned</p>
-        </div>
-      </aside>
-
-      <section class="board-wrap">
-        <div class="board-head"><p>Drag cards to reorder · Click any page to edit</p><p id="filterLabel">All sections</p></div>
-        <div id="flatplan" class="flatplan" aria-live="polite"></div>
-        <div id="emptyState" class="empty" hidden><strong>No pages found</strong><span>Try a different search or section.</span></div>
-      </section>
-    </div>
-  </main>
-
-  <dialog id="editDialog">
-    <form method="dialog" id="editForm">
-      <div class="dialog-head"><div><p class="eyebrow">PAGE DETAILS</p><h2 id="dialogTitle">Edit page</h2></div><button class="icon-btn" value="cancel" aria-label="Close">×</button></div>
-      <input type="hidden" id="editId">
-      <label>Title<input id="editTitle" required></label>
-      <div class="form-row">
-        <label>Section<select id="editSection"></select></label>
-        <label>Status<select id="editStatus"><option value="planned">Planned</option><option value="writing">Writing</option><option value="review">In review</option><option value="ready">Ready</option></select></label>
-      </div>
-      <div class="form-row">
-        <label>Owner<input id="editOwner" placeholder="Unassigned"></label>
-        <label>Due date<input id="editDue" type="date"></label>
-      </div>
-      <label>Notes<textarea id="editNotes" rows="3" placeholder="Brief, assets, dependencies…"></textarea></label>
-      <div class="dialog-actions"><button class="button danger" id="deleteBtn" type="button">Delete spread</button><span></span><button class="button ghost" value="cancel">Cancel</button><button class="button dark" id="saveBtn" value="default">Save changes</button></div>
-    </form>
-  </dialog>
-
-  <script src="app.js"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111827"><title>Flatplan · Editorial planning</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111827'/%3E%3Cpath d='M13 15h17v34H13zm21 0h17v34H34z' fill='%23fff'/%3E%3Cpath d='M19 23h6M19 30h6M40 23h6M40 30h6M40 37h6' stroke='%23ec5b3f' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="styles.css"></head><body>
+<header class="topbar"><div class="brand"><span class="brand-mark">FP</span><div><strong>Flatplan</strong><small>Annual report studio</small></div></div><nav class="top-actions"><button class="btn ghost" id="resetBtn">Reset sample</button><button class="btn coral" id="exportBtn">Export</button></nav></header>
+<main>
+ <section class="masthead"><div><p class="eyebrow">PUBLICATION WORKSPACE</p><h1 id="projectTitle" contenteditable="true">The Year in Perspective</h1><p class="meta">ANNUAL REPORT <span>·</span> PRESS: 18 APR</p></div><div class="metrics"><div><strong id="interiorCount">24</strong><span>interior pages</span></div><div><strong id="placedCount">0</strong><span>items placed</span></div><div id="signatureMetric"><strong>✓</strong><span>print ready</span></div></div></section>
+ <section class="signature-bar" id="signatureBar"><div><b id="signatureText">24 interior pages · valid print signature</b><span>Interior page count must be a multiple of 4. Covers are tracked separately.</span></div><div><button class="btn light" id="removePagesBtn">− 4 pages</button><button class="btn dark" id="addPagesBtn">＋ 4 pages</button></div></section>
+ <section class="schedule"><div class="schedule-head"><div><p class="eyebrow">PRODUCTION SCHEDULE</p><h2>Deadlines</h2></div><button class="btn light" id="editScheduleBtn">Edit dates</button></div><div class="timeline-track"><i id="timelineProgress"></i></div><div id="timeline" class="timeline"></div></section>
+ <section class="toolbar"><div class="view-switch"><button class="active" data-view="spreads">Spreads</button><button data-view="pages">Pages</button></div><label class="search">⌕ <input id="searchInput" placeholder="Find a story, owner, or page"></label><div class="toolbar-actions"><button class="btn light" id="addElementBtn">＋ New element</button><button class="btn dark" id="pitchBtn">＋ Pitch a story</button></div></section>
+ <div class="workspace"><aside class="story-desk"><div class="panel-head"><div><p class="eyebrow">EDITORIAL DESK</p><h2>Stories & elements</h2></div><button class="icon-btn" id="quickPitch" aria-label="Pitch a story">＋</button></div><div class="story-filters" id="storyFilters"><button class="active" data-filter="all">All</button><button data-filter="pitch">Pitched</button><button data-filter="approved">Approved</button><button data-filter="denied">Denied</button></div><div id="storyList" class="story-list"></div></aside>
+  <section class="board"><div class="board-note"><span>Drag an approved item onto a page to place it.</span><span id="pageViewLabel">Interior spreads</span></div><div class="cover-section"><div class="section-title"><h2>Covers</h2><span>Separate production pieces · never paired as spreads</span></div><div id="coverRail" class="cover-rail"></div></div><div class="interior-section"><div class="section-title"><h2>Interior</h2><span id="interiorLabel">12 reader spreads</span></div><div id="flatplan" class="flatplan"></div></div></section></div>
+</main>
+<dialog id="storyDialog"><form id="storyForm"><div class="dialog-head"><div><p class="eyebrow">EDITORIAL ITEM</p><h2 id="storyDialogTitle">Pitch a story</h2></div><button type="button" class="icon-btn close-dialog">×</button></div><input type="hidden" id="storyId"><div class="form-row"><label>Title<input id="storyTitle" required></label><label>Type<select id="storyType"><option value="story">Story</option><option value="photo">Photo / artwork</option><option value="chart">Chart / data</option><option value="quote">Quote / callout</option><option value="ad">Advertisement</option></select></label></div><label>Pitch<textarea id="storyPitch" rows="3" placeholder="What is the story and why does it matter?"></textarea></label><label>Saved text<textarea id="storyCopy" rows="7" placeholder="Draft or paste the working copy here…"></textarea></label><div class="form-row"><label>Owner<input id="storyOwner" placeholder="Initials or name"></label><label>Editorial decision<select id="storyStatus"><option value="pitch">Pitched</option><option value="approved">Approved</option><option value="denied">Denied</option></select></label></div><label>Place on<select id="storyPage"><option value="">Unplaced</option></select></label><div class="dialog-actions"><button type="button" class="btn danger" id="deleteStoryBtn">Delete</button><span></span><button type="button" class="btn light close-dialog">Cancel</button><button class="btn dark" type="submit">Save item</button></div></form></dialog>
+<dialog id="pageDialog"><form id="pageForm"><div class="dialog-head"><div><p class="eyebrow">PAGE PLAN</p><h2 id="pageDialogTitle">Page</h2></div><button type="button" class="icon-btn close-page">×</button></div><input type="hidden" id="pageId"><div class="form-row"><label>Page title<input id="pageTitle"></label><label>Section<select id="pageSection"></select></label></div><label>Layout<select id="pageLayout"><option value="feature">Feature opener</option><option value="standard">Standard editorial</option><option value="visual">Image-led</option><option value="data">Data page</option><option value="minimal">Minimal</option></select></label><div><p class="field-label">Placed items</p><div id="placedItems" class="placed-items"></div></div><div class="dialog-actions"><button type="button" class="btn light close-page">Cancel</button><span></span><button class="btn dark" type="submit">Save page</button></div></form></dialog>
+<dialog id="scheduleDialog"><form id="scheduleForm"><div class="dialog-head"><div><p class="eyebrow">PRODUCTION SCHEDULE</p><h2>Edit deadlines</h2></div><button type="button" class="icon-btn close-schedule">×</button></div><div id="scheduleFields" class="schedule-fields"></div><div class="dialog-actions"><button type="button" class="btn light close-schedule">Cancel</button><span></span><button class="btn dark" type="submit">Save dates</button></div></form></dialog>
+<div id="toast" role="status"></div><script src="app.js"></script></body></html>

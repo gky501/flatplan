@@ -1,101 +1,26 @@
-const STORAGE_KEY = "annual-report-flatplan-v1";
-
-const sample = {
-  title: "The Year in Perspective",
-  sections: [
-    { id: "front", name: "Front matter", color: "#ec5b3f" },
-    { id: "story", name: "Our story", color: "#3451b2" },
-    { id: "impact", name: "Impact", color: "#24835b" },
-    { id: "financial", name: "Financials", color: "#7b61a8" },
-    { id: "back", name: "Back matter", color: "#c47a12" }
-  ],
-  spreads: [
-    ["Cover", "Inside cover", "front", "ready", "MS"],
-    ["Contents", "At a glance", "front", "review", "AL"],
-    ["Letter from the chair", "Letter from the chair", "front", "writing", "JB"],
-    ["A year of momentum", "A year of momentum", "story", "review", "DK"],
-    ["Who we are", "Our strategy", "story", "ready", "AL"],
-    ["People & culture", "People & culture", "impact", "writing", "SK"],
-    ["Climate action", "Climate action", "impact", "review", "MS"],
-    ["Community impact", "Community impact", "impact", "planned", "JB"],
-    ["Financial highlights", "Financial highlights", "financial", "ready", "DK"],
-    ["Performance review", "Performance review", "financial", "writing", "AL"],
-    ["Governance", "Governance", "financial", "planned", "SK"],
-    ["Risk & outlook", "Risk & outlook", "financial", "planned", "MS"],
-    ["Leadership", "Contact", "back", "review", "JB"],
-    ["Inside back cover", "Back cover", "back", "planned", ""]
-  ].map((x,i)=>({id:crypto.randomUUID(),left:x[0],right:x[1],section:x[2],status:x[3],owner:x[4],due:"",notes:""}))
-};
-
-let state = load();
-let sectionFilter = "all";
-let view = "spreads";
-let search = "";
-let dragId = null;
-const $ = s => document.querySelector(s);
-
-function load(){ try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || structuredClone(sample); } catch { return structuredClone(sample); } }
-function save(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
-function section(id){ return state.sections.find(s=>s.id===id) || state.sections[0]; }
-function statusLabel(s){ return ({planned:"Planned",writing:"Writing",review:"In review",ready:"Ready"})[s]; }
-function esc(v=""){ return v.replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]); }
-
-function render(){
-  document.title = `${state.title} · Flatplan`;
-  $("#project-title").textContent = state.title;
-  const pages = state.spreads.length*2;
-  const ready = state.spreads.filter(s=>s.status==="ready").length*2;
-  $("#pageCount").textContent=pages; $("#readyCount").textContent=ready; $("#progressText").textContent=`${Math.round(ready/pages*100)||0}%`;
-  renderSections(); renderBoard();
-}
-
-function renderSections(){
-  const list = $("#sectionList");
-  const all = `<button class="section-button ${sectionFilter==="all"?"active":""}" data-section="all"><i style="--section-color:#111827"></i><span>All sections</span><b>${state.spreads.length*2}</b></button>`;
-  list.innerHTML=all+state.sections.map(s=>`<button class="section-button ${sectionFilter===s.id?"active":""}" data-section="${s.id}"><i style="--section-color:${s.color}"></i><span>${esc(s.name)}</span><b>${state.spreads.filter(p=>p.section===s.id).length*2}</b></button>`).join("");
-  list.querySelectorAll("button").forEach(b=>b.onclick=()=>{sectionFilter=b.dataset.section;render();});
-}
-
-function renderBoard(){
-  let items=state.spreads.filter(s=>sectionFilter==="all"||s.section===sectionFilter).filter(s=>`${s.left} ${s.right} ${s.owner}`.toLowerCase().includes(search));
-  $("#filterLabel").textContent=sectionFilter==="all"?"All sections":section(sectionFilter).name;
-  $("#emptyState").hidden=items.length>0;
-  $("#flatplan").innerHTML=items.map(s=>spreadHtml(s,state.spreads.indexOf(s))).join("");
-  document.querySelectorAll(".spread").forEach(el=>{
-    el.addEventListener("dragstart",()=>{dragId=el.dataset.id;el.classList.add("dragging")});
-    el.addEventListener("dragend",()=>el.classList.remove("dragging"));
-    el.addEventListener("dragover",e=>e.preventDefault());
-    el.addEventListener("drop",e=>{e.preventDefault();reorder(dragId,el.dataset.id)});
-  });
-  document.querySelectorAll(".page").forEach(el=>el.onclick=()=>openEditor(el.closest(".spread").dataset.id));
-}
-
-function spreadHtml(s,index){
-  const sec=section(s.section), n=index*2+1;
-  const card=(title,num)=>`<article class="page" style="--section-color:${sec.color}" tabindex="0"><span class="page-number">${String(num).padStart(2,"0")}</span><h3>${esc(title)}</h3><span class="kind">${esc(sec.name)}</span><footer class="page-footer"><span class="owner">${s.owner?`<i class="avatar">${esc(s.owner.slice(0,2))}</i>${esc(s.owner)}`:"Unassigned"}</span><span class="status-pill ${s.status}">${statusLabel(s.status)}</span></footer></article>`;
-  if(view==="pages") return `<div class="spread" draggable="true" data-id="${s.id}">${card(s.left,n)}${card(s.right,n+1)}<span class="spread-label">Pages ${n}–${n+1}</span></div>`;
-  return `<div class="spread" draggable="true" data-id="${s.id}">${card(s.left,n)}${card(s.right,n+1)}<span class="spread-label">Spread ${index+1} · ${n}–${n+1}</span></div>`;
-}
-
-function reorder(from,to){ if(!from||from===to)return; const a=state.spreads.findIndex(s=>s.id===from),b=state.spreads.findIndex(s=>s.id===to); const [m]=state.spreads.splice(a,1);state.spreads.splice(b,0,m);save();render(); }
-function openEditor(id){
-  const s=state.spreads.find(x=>x.id===id); if(!s)return;
-  $("#editId").value=s.id; $("#dialogTitle").textContent=`Pages ${state.spreads.indexOf(s)*2+1}–${state.spreads.indexOf(s)*2+2}`;
-  $("#editTitle").value=s.left===s.right?s.left:`${s.left} / ${s.right}`; $("#editSection").innerHTML=state.sections.map(x=>`<option value="${x.id}" ${x.id===s.section?"selected":""}>${esc(x.name)}</option>`).join("");
-  $("#editStatus").value=s.status; $("#editOwner").value=s.owner; $("#editDue").value=s.due||""; $("#editNotes").value=s.notes||""; $("#editDialog").showModal();
-}
-
-$("#editForm").addEventListener("submit",e=>{
-  if(e.submitter?.value!=="default")return;
-  e.preventDefault(); const s=state.spreads.find(x=>x.id===$("#editId").value); const parts=$("#editTitle").value.split("/").map(x=>x.trim());
-  Object.assign(s,{left:parts[0],right:parts[1]||parts[0],section:$("#editSection").value,status:$("#editStatus").value,owner:$("#editOwner").value,due:$("#editDue").value,notes:$("#editNotes").value}); save();$("#editDialog").close();render();
-});
-$("#deleteBtn").onclick=()=>{state.spreads=state.spreads.filter(x=>x.id!==$("#editId").value);save();$("#editDialog").close();render();};
-$("#addSpreadBtn").onclick=()=>{const id=crypto.randomUUID();state.spreads.push({id,left:"Untitled story",right:"Untitled story",section:sectionFilter==="all"?state.sections[0].id:sectionFilter,status:"planned",owner:"",due:"",notes:""});save();render();openEditor(id);};
-$("#addSectionBtn").onclick=()=>{const name=prompt("Section name");if(!name)return;const colors=["#0e7490","#a33b20","#5c6f2f","#8a4f7d"];state.sections.push({id:crypto.randomUUID(),name,color:colors[state.sections.length%colors.length]});save();render();};
-$("#searchInput").oninput=e=>{search=e.target.value.toLowerCase();renderBoard();};
-$("#project-title").addEventListener("blur",e=>{state.title=e.target.textContent.trim()||"Untitled report";save();render();});
-document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{view=b.dataset.view;document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x===b));renderBoard();});
-$("#resetBtn").onclick=()=>{if(confirm("Replace this plan with the original sample?")){state=structuredClone(sample);save();render();}};
-$("#exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="annual-report-flatplan.json";a.click();URL.revokeObjectURL(a.href);};
-render();
+const KEY="flatplan-editorial-v2", $=s=>document.querySelector(s), esc=(v="")=>String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);
+const uid=()=>crypto.randomUUID(), sections=[{id:"front",name:"Front matter",color:"#eb6045"},{id:"story",name:"Our story",color:"#3451b2"},{id:"impact",name:"Impact",color:"#287c5a"},{id:"financial",name:"Financials",color:"#795aa6"},{id:"back",name:"Back matter",color:"#b76e10"}];
+const milestoneDefs=[["firstDraft","First Draft Due"],["revision1","Revision Week 1"],["secondDraft","Second Draft Due"],["revision2","Revision Week 2"],["finalDraft","Final Draft Due"],["finalReview","Final Review"],["print","Send To Print Deadline"],["inHand","In Hand Deadline"],["presentation","Presentation Deadline"]];
+const seedStories=[["Chair’s letter","A candid reflection on the year’s turning points and the choices ahead.","approved","story","JB",1],["A year of momentum","The milestones that moved the strategy from intent to action.","approved","story","DK",4],["Our people in numbers","A compact data story on growth, mobility, and belonging.","approved","chart","AL",10],["Climate action","Progress against the transition plan, with proof points and next steps.","pitch","story","MS",null],["Community portrait","Full-bleed documentary image with a short first-person caption.","pitch","photo","SK",null],["Legacy systems advert","External placement submitted for review.","denied","ad","",null]];
+function initial(){const titles=["Contents","At a glance","Chair’s letter","Chair’s letter","A year of momentum","A year of momentum","Who we are","Our strategy","People & culture","People & culture","Climate action","Climate action","Community impact","Community impact","Financial highlights","Financial highlights","Performance review","Performance review","Governance","Governance","Risk & outlook","Risk & outlook","Leadership","Contact"];const pages=Array.from({length:24},(_,i)=>({id:`p${i+1}`,number:i+1,title:titles[i],section:i<4?"front":i<8?"story":i<14?"impact":i<22?"financial":"back",layout:i%5===0?"visual":i%4===0?"feature":"standard"}));const covers=[{id:"front-cover",title:"Front cover",layout:"minimal"},{id:"inside-front",title:"Inside front cover",layout:"minimal"},{id:"inside-back",title:"Inside back cover",layout:"minimal"},{id:"back-cover",title:"Back cover",layout:"minimal"}];const stories=seedStories.map((s,i)=>({id:uid(),title:s[0],pitch:s[1],copy:i===0?"This year asked us to move with clarity, courage, and care. Our progress belongs to every colleague, partner, and community who helped shape it.":"",status:s[2],type:s[3],owner:s[4],pageId:s[5]?`p${s[5]}`:""}));const schedule={firstDraft:"2026-10-09",revision1:"2026-10-12",secondDraft:"2026-10-23",revision2:"2026-10-26",finalDraft:"2026-11-06",finalReview:"2026-11-10",print:"2026-11-13",inHand:"2026-12-11",presentation:"2026-12-18"};return{title:"The Year in Perspective",sections,pages,covers,stories,schedule};}
+let state=load(),view="spreads",storyFilter="all",search="",dragStory="";
+function load(){try{const data=JSON.parse(localStorage.getItem(KEY))||initial();if(!data.schedule)data.schedule=initial().schedule;return data}catch{return initial()}}function save(){localStorage.setItem(KEY,JSON.stringify(state))}function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800)}
+function sec(id){return state.sections.find(x=>x.id===id)||state.sections[0]}function placed(pageId){return state.stories.filter(x=>x.pageId===pageId)}function statusColor(s){return s==="approved"?"#287c5a":s==="denied"?"#b42318":"#b76e10"}
+function render(){const valid=state.pages.length%4===0;$("#projectTitle").textContent=state.title;$("#interiorCount").textContent=state.pages.length;$("#placedCount").textContent=state.stories.filter(x=>x.pageId).length;$("#signatureText").textContent=`${state.pages.length} interior pages · ${valid?"valid print signature":"not a multiple of 4"}`;$("#signatureBar").classList.toggle("invalid",!valid);$("#signatureMetric").classList.toggle("invalid",!valid);$("#signatureMetric").innerHTML=`<strong>${valid?"✓":"!"}</strong><span>${valid?"print ready":"fix count"}</span>`;$("#interiorLabel").textContent=view==="spreads"?`${state.pages.length/2} reader spreads`:`${state.pages.length} individual pages`;renderSchedule();renderStories();renderCovers();renderPages()}
+function renderSchedule(){const today=new Date();today.setHours(0,0,0,0);const dated=milestoneDefs.map(([key,label])=>({key,label,value:state.schedule[key]||"",date:state.schedule[key]?new Date(state.schedule[key]+"T00:00:00"):null}));const valid=dated.filter(x=>x.date).sort((a,b)=>a.date-b.date),next=valid.find(x=>x.date>=today),first=valid[0]?.date,last=valid.at(-1)?.date;let progress=0;if(first&&last){progress=Math.max(0,Math.min(100,(today-first)/(last-first)*100))}$("#timelineProgress").style.width=`${progress}%`;$("#timeline").innerHTML=dated.map(x=>{if(!x.date)return `<div class="milestone empty"><strong>${x.label}</strong><time>Date not set</time><b>—</b></div>`;const days=Math.ceil((x.date-today)/86400000),done=days<0,klass=done?"done overdue":next?.key===x.key?"next":"";return `<div class="milestone ${klass}"><strong title="${x.label}">${x.label}</strong><time>${x.date.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}</time><b>${days===0?"Due today":days>0?`${days} day${days===1?"":"s"} left`:`${Math.abs(days)} day${days===-1?"":"s"} overdue`}</b></div>`}).join("")}
+function renderStories(){let xs=state.stories.filter(x=>storyFilter==="all"||x.status===storyFilter).filter(x=>(x.title+x.pitch+x.owner).toLowerCase().includes(search));$("#storyList").innerHTML=xs.length?xs.map(x=>`<article class="story-card" data-id="${x.id}" draggable="${x.status==="approved"}" style="--status-color:${statusColor(x.status)}"><div class="story-top"><h3>${esc(x.title)}</h3><span class="type-badge">${esc(x.type)}</span></div><p>${esc(x.pitch||"No pitch added yet.")}</p><div class="story-foot"><span class="decision">${x.status}</span><span class="placed-on">${x.pageId?labelPage(x.pageId):x.owner||"Unassigned"}</span></div></article>`).join(""):`<p class="empty-page">No items in this view.</p>`;document.querySelectorAll(".story-card").forEach(el=>{el.onclick=()=>openStory(el.dataset.id);el.ondragstart=e=>{dragStory=el.dataset.id;e.dataTransfer.setData("text/plain",dragStory)}})}
+function pageHtml(p,isCover=false){const items=placed(p.id),section=isCover?{color:"#111827",name:"Cover"}:sec(p.section);return `<article class="page-card" data-page="${p.id}" style="border-top:4px solid ${section.color}" tabindex="0"><div class="page-meta"><b>${isCover?"COVER":String(p.number).padStart(2,"0")}</b><span>${isCover?"separate":esc(section.name)}</span></div><h3 class="page-title">${esc(p.title||"Untitled page")}</h3><div class="layout-canvas">${items.length?items.map(x=>`<div class="layout-block ${x.type}" title="${esc(x.title)}">${x.type==="story"?"":esc(x.title)}</div>`).join(""):`<div class="empty-page"><b>＋</b>Drop an item here</div>`}</div><div class="page-count">${items.length} item${items.length===1?"":"s"}</div>${isCover?`<span class="cover-tag">${esc(p.title)}</span>`:""}</article>`}
+function renderCovers(){$("#coverRail").innerHTML=state.covers.map(x=>pageHtml(x,true)).join("");bindPages($("#coverRail"))}
+function renderPages(){const filtered=state.pages.filter(p=>(p.title+sec(p.section).name+placed(p.id).map(x=>x.title+x.owner).join(" ")).toLowerCase().includes(search));const el=$("#flatplan");el.classList.toggle("pages-mode",view==="pages");if(view==="pages")el.innerHTML=filtered.map(p=>pageHtml(p)).join("");else{const groups=[];for(let i=0;i<filtered.length;i+=2)groups.push(filtered.slice(i,i+2));el.innerHTML=groups.map((g,i)=>`<div class="spread">${g.map(p=>pageHtml(p)).join("")}<span class="spread-label">Spread ${i+1} · pages ${g.map(p=>p.number).join("–")}</span></div>`).join("")}bindPages(el)}
+function bindPages(root){root.querySelectorAll(".page-card").forEach(el=>{el.onclick=()=>openPage(el.dataset.page);el.ondragover=e=>{e.preventDefault();el.classList.add("drop-target")};el.ondragleave=()=>el.classList.remove("drop-target");el.ondrop=e=>{e.preventDefault();e.stopPropagation();el.classList.remove("drop-target");placeStory(dragStory||e.dataTransfer.getData("text/plain"),el.dataset.page)}})}
+function labelPage(id){const c=state.covers.find(x=>x.id===id);if(c)return c.title;const p=state.pages.find(x=>x.id===id);return p?`Page ${p.number}`:"Unplaced"}function allPageOptions(){return [...state.covers.map(x=>[x.id,x.title]),...state.pages.map(x=>[x.id,`Page ${x.number} · ${x.title}`])]}
+function placeStory(id,pageId){const x=state.stories.find(s=>s.id===id);if(!x)return;if(x.status!=="approved"){toast("Approve the item before placing it");return}x.pageId=pageId;save();render();toast(`${x.title} placed on ${labelPage(pageId)}`)}
+function openStory(id="",presetPage="",presetType="story"){const x=state.stories.find(s=>s.id===id);$("#storyDialogTitle").textContent=x?"Edit editorial item":presetType==="story"?"Pitch a story":"Add an element";$("#storyId").value=x?.id||"";$("#storyTitle").value=x?.title||"";$("#storyType").value=x?.type||presetType;$("#storyPitch").value=x?.pitch||"";$("#storyCopy").value=x?.copy||"";$("#storyOwner").value=x?.owner||"";$("#storyStatus").value=x?.status||"pitch";$("#storyPage").innerHTML=`<option value="">Unplaced</option>`+allPageOptions().map(([v,l])=>`<option value="${v}" ${(x?.pageId||presetPage)===v?"selected":""}>${esc(l)}</option>`).join("");$("#deleteStoryBtn").style.visibility=x?"visible":"hidden";$("#storyDialog").showModal()}
+function openPage(id){const p=state.pages.find(x=>x.id===id)||state.covers.find(x=>x.id===id);if(!p)return;$("#pageId").value=id;$("#pageDialogTitle").textContent=labelPage(id);$("#pageTitle").value=p.title;$("#pageLayout").value=p.layout||"standard";$("#pageSection").innerHTML=state.sections.map(s=>`<option value="${s.id}" ${p.section===s.id?"selected":""}>${esc(s.name)}</option>`).join("");$("#pageSection").disabled=!p.number;const items=placed(id);$("#placedItems").innerHTML=items.length?items.map(x=>`<div class="placed-row"><span>${esc(x.title)} · ${x.type}</span><button type="button" data-remove="${x.id}">Remove</button></div>`).join(""):`<div class="placed-row"><span>No items placed yet</span></div>`;$("#placedItems").querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{state.stories.find(x=>x.id===b.dataset.remove).pageId="";save();openPage(id);render()});$("#pageDialog").showModal()}
+$("#storyForm").onsubmit=e=>{e.preventDefault();let x=state.stories.find(s=>s.id===$("#storyId").value);if(!x){x={id:uid()};state.stories.unshift(x)}Object.assign(x,{title:$("#storyTitle").value.trim(),type:$("#storyType").value,pitch:$("#storyPitch").value.trim(),copy:$("#storyCopy").value,status:$("#storyStatus").value,owner:$("#storyOwner").value.trim(),pageId:$("#storyPage").value});if(x.status!=="approved"&&x.pageId)x.pageId="";save();$("#storyDialog").close();render();toast("Editorial item saved")};
+$("#pageForm").onsubmit=e=>{e.preventDefault();const id=$("#pageId").value,p=state.pages.find(x=>x.id===id)||state.covers.find(x=>x.id===id);p.title=$("#pageTitle").value.trim();p.layout=$("#pageLayout").value;if(p.number)p.section=$("#pageSection").value;save();$("#pageDialog").close();render();toast("Page plan saved")};
+document.querySelectorAll(".close-dialog").forEach(b=>b.onclick=()=>$("#storyDialog").close());document.querySelectorAll(".close-page").forEach(b=>b.onclick=()=>$("#pageDialog").close());$("#deleteStoryBtn").onclick=()=>{state.stories=state.stories.filter(x=>x.id!==$("#storyId").value);save();$("#storyDialog").close();render();toast("Item deleted")};
+function openSchedule(){$("#scheduleFields").innerHTML=milestoneDefs.map(([key,label])=>`<label>${label}<input type="date" data-milestone="${key}" value="${state.schedule[key]||""}"></label>`).join("");$("#scheduleDialog").showModal()}$("#editScheduleBtn").addEventListener("click",openSchedule);document.querySelectorAll(".close-schedule").forEach(b=>b.addEventListener("click",()=>$("#scheduleDialog").close()));$("#scheduleForm").addEventListener("submit",e=>{e.preventDefault();document.querySelectorAll("[data-milestone]").forEach(input=>state.schedule[input.dataset.milestone]=input.value);save();$("#scheduleDialog").close();render();toast("Production dates saved")});
+$("#pitchBtn").addEventListener("click",()=>openStory());$("#quickPitch").addEventListener("click",()=>openStory());$("#addElementBtn").addEventListener("click",()=>openStory("","","photo"));document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x===b));render()}));$("#storyFilters").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{storyFilter=b.dataset.filter;$("#storyFilters").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));renderStories()}));
+$("#searchInput").oninput=e=>{search=e.target.value.toLowerCase();renderStories();renderPages()};$("#projectTitle").onblur=e=>{state.title=e.target.textContent.trim()||"Untitled publication";save()};$("#addPagesBtn").onclick=()=>{for(let i=0;i<4;i++){const n=state.pages.length+1;state.pages.push({id:`p${Date.now()}-${i}`,number:n,title:"Untitled page",section:"back",layout:"standard"})}save();render();toast("Four pages added")};$("#removePagesBtn").onclick=()=>{if(state.pages.length<=4)return toast("Keep at least four interior pages");const ids=state.pages.slice(-4).map(x=>x.id);state.stories.forEach(x=>{if(ids.includes(x.pageId))x.pageId=""});state.pages.splice(-4);save();render();toast("Last four pages removed")};
+$("#resetBtn").onclick=()=>{if(confirm("Replace this plan with the sample publication?")){state=initial();save();render()}};$("#exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}));a.download="flatplan.json";a.click();URL.revokeObjectURL(a.href)};render();
