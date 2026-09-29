@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Annual Report Flatplan</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111827'/%3E%3Cpath d='M14 16h16v32H14zm20 0h16v32H34z' fill='%23f7f2e8'/%3E%3Cpath d='M20 24h5M20 30h5M39 24h6M39 30h6M39 36h6' stroke='%23ec5b3f' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">FP</span><div><strong>Annual Report</strong><small>2026 flatplan</small></div></div>
+    <div class="top-actions">
+      <button class="button ghost" id="resetBtn">Reset sample</button>
+      <button class="button dark" id="exportBtn">Export plan</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary" aria-labelledby="project-title">
+      <div>
+        <p class="eyebrow">PUBLICATION WORKSPACE</p>
+        <h1 id="project-title" contenteditable="true" spellcheck="false">The Year in Perspective</h1>
+        <p class="meta"><span>ANNUAL REPORT</span><span>ISSUE 01</span><span>PRESS: 18 APR</span></p>
+      </div>
+      <div class="stats" aria-label="Project status">
+        <div><strong id="pageCount">28</strong><span>pages</span></div>
+        <div><strong id="readyCount">0</strong><span>ready</span></div>
+        <div><strong id="progressText">0%</strong><span>complete</span></div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Flatplan controls">
+      <div class="view-switch" role="group" aria-label="View">
+        <button class="active" data-view="spreads">Spreads</button>
+        <button data-view="pages">Pages</button>
+      </div>
+      <div class="toolbar-actions">
+        <label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Find a page or owner"></label>
+        <button class="button light" id="addSpreadBtn">＋ Add spread</button>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <aside class="sections-panel">
+        <div class="panel-heading"><h2>Sections</h2><button id="addSectionBtn" aria-label="Add section">＋</button></div>
+        <div id="sectionList"></div>
+        <div class="legend">
+          <h3>Status key</h3>
+          <p><i class="dot writing"></i> Writing</p>
+          <p><i class="dot review"></i> In review</p>
+          <p><i class="dot ready"></i> Ready</p>
+          <p><i class="dot planned"></i> Planned</p>
+        </div>
+      </aside>
+
+      <section class="board-wrap">
+        <div class="board-head"><p>Drag cards to reorder · Click any page to edit</p><p id="filterLabel">All sections</p></div>
+        <div id="flatplan" class="flatplan" aria-live="polite"></div>
+        <div id="emptyState" class="empty" hidden><strong>No pages found</strong><span>Try a different search or section.</span></div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="editDialog">
+    <form method="dialog" id="editForm">
+      <div class="dialog-head"><div><p class="eyebrow">PAGE DETAILS</p><h2 id="dialogTitle">Edit page</h2></div><button class="icon-btn" value="cancel" aria-label="Close">×</button></div>
+      <input type="hidden" id="editId">
+      <label>Title<input id="editTitle" required></label>
+      <div class="form-row">
+        <label>Section<select id="editSection"></select></label>
+        <label>Status<select id="editStatus"><option value="planned">Planned</option><option value="writing">Writing</option><option value="review">In review</option><option value="ready">Ready</option></select></label>
+      </div>
+      <div class="form-row">
+        <label>Owner<input id="editOwner" placeholder="Unassigned"></label>
+        <label>Due date<input id="editDue" type="date"></label>
+      </div>
+      <label>Notes<textarea id="editNotes" rows="3" placeholder="Brief, assets, dependencies…"></textarea></label>
+      <div class="dialog-actions"><button class="button danger" id="deleteBtn" type="button">Delete spread</button><span></span><button class="button ghost" value="cancel">Cancel</button><button class="button dark" id="saveBtn" value="default">Save changes</button></div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
