@@ -20,6 +20,11 @@ A self-hosted editorial pitch desk and production flatplan for annual reports an
 - Finder file association and a custom Flatplan app icon
 - Browser storage fallback when the desktop wrapper is not used
 - Responsive layout for desktop and mobile
+- Production dashboard, assigned deadlines and reviews, dated notes, and activity history
+- macOS deadline reminders, print-ready locking, bulk tools, undo/redo, and keyboard shortcuts
+- Publication templates, edition duplication, and archived-publication search
+- Relative links to InDesign-folder assets with thumbnails, version labels, and missing-file warnings
+- Production report, assignments CSV, final preflight, and InDesign manifest exports
 
 ## Run the macOS app during development
 

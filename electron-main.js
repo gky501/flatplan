@@ -1,4 +1,4 @@
-const {app,BrowserWindow,dialog,ipcMain,Menu}=require("electron");
+const {app,BrowserWindow,dialog,ipcMain,Menu,Notification}=require("electron");
 const fs=require("node:fs/promises");
 const path=require("node:path");
 
@@ -81,6 +81,10 @@ ipcMain.handle("flatplan:restore-backup",async()=>{
   const project=await readProject(result.filePaths[0]);return{canceled:false,...project,restoreTarget:currentFilePath};
 });
 ipcMain.handle("flatplan:current-path",()=>currentFilePath);
+ipcMain.handle("flatplan:select-assets",async()=>{const result=await dialog.showOpenDialog(mainWindow,{title:"Link production assets",properties:["openFile","multiSelections"],filters:[{name:"Production assets",extensions:["indd","idml","pdf","jpg","jpeg","png","tif","tiff","psd","ai","svg"]},{name:"All files",extensions:["*"]}]});if(result.canceled)return{canceled:true,files:[]};const base=currentFilePath?path.dirname(currentFilePath):"";return{canceled:false,files:await Promise.all(result.filePaths.map(async filePath=>{const stat=await fs.stat(filePath);return{name:path.basename(filePath),path:filePath,relativePath:base?path.relative(base,filePath):filePath,version:"v1",modifiedAt:stat.mtime.toISOString(),size:stat.size,exists:true}}))}});
+ipcMain.handle("flatplan:check-assets",async(_event,assets=[])=>Promise.all(assets.map(async asset=>{const relativeCandidate=currentFilePath&&asset.relativePath?path.resolve(path.dirname(currentFilePath),asset.relativePath):"",candidate=relativeCandidate&&await exists(relativeCandidate)?relativeCandidate:asset.path||relativeCandidate;return{...asset,path:candidate,exists:Boolean(candidate&&await exists(candidate))}})));
+ipcMain.handle("flatplan:export-text",async(_event,{name,content,type="text"})=>{const extensions=type==="csv"?["csv"]:type==="json"?["json"]:type==="html"?["html"]:["txt"];const result=await dialog.showSaveDialog(mainWindow,{title:"Export Flatplan production file",defaultPath:name,filters:[{name:`${type.toUpperCase()} file`,extensions}],properties:["createDirectory","showOverwriteConfirmation"]});if(result.canceled||!result.filePath)return{canceled:true};await fs.writeFile(result.filePath,content,"utf8");return{canceled:false,filePath:result.filePath}});
+ipcMain.handle("flatplan:notify",(_event,{title,body})=>{if(Notification.isSupported())new Notification({title,body}).show();return true});
 
 function createMenu(){
   const template=[{label:"File",submenu:[{label:"Open…",accelerator:"CmdOrCtrl+O",click:()=>send("flatplan:request-open")},{label:"Save",accelerator:"CmdOrCtrl+S",click:()=>send("flatplan:request-save")},{label:"Save As…",accelerator:"CmdOrCtrl+Shift+S",click:()=>send("flatplan:request-save-as")},{label:"Restore Backup…",click:()=>send("flatplan:request-restore")},{type:"separator"},{role:"close"}]}];
