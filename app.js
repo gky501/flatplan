@@ -21,7 +21,7 @@ function normalizePublication(data){
   const savedSettings=data.settings&&typeof data.settings==="object"?data.settings:{};
   data.settings={accent:"#ff5a36",density:"compact",...savedSettings};
   const ownerSource=Array.isArray(savedSettings.owners)?savedSettings.owners:data.stories.flatMap(story=>Array.isArray(story.owners)?story.owners:[story.owner]);
-  const seenOwners=new Set();data.settings.owners=ownerSource.map(owner=>String(owner||"").trim()).filter(owner=>{const key=owner.toLocaleLowerCase();if(!owner||seenOwners.has(key))return false;seenOwners.add(key);return true});
+  const seenOwners=new Set();data.settings.owners=ownerSource.map(owner=>String(owner||"").trim()).filter(owner=>{const key=owner.toLocaleLowerCase();if(!owner||seenOwners.has(key))return false;seenOwners.add(key);return true}).sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}));
   let checklist=data.settings.finalReviewChecklist||data.reviewChecklist;
   if(!Array.isArray(checklist)||!checklist.length)checklist=structuredClone(defaultReviewChecklist);
   data.settings.finalReviewChecklist=checklist.map((item,index)=>{const label=String(typeof item==="string"?item:item?.label||"").trim()||`Review item ${index+1}`;return{id:String(item?.id||`review-${index}-${label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"item"}`),label,owner:String(item?.owner||"")}});
@@ -130,5 +130,5 @@ $("#importBtn").onclick=openProjectFile;
 $("#importInput").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{loadProjectData(JSON.parse(await file.text()));updateFileStatus(file.name);toast(`Opened ${file.name}`)}catch{toast("That file is not a valid Flatplan project")}finally{e.target.value=""}};
 $("#exportBtn").onclick=()=>saveProjectFile(false);
 $("#saveAsBtn").onclick=()=>saveProjectFile(true);
-if(window.flatplanDesktop){window.flatplanDesktop.currentPath().then(updateFileStatus);window.flatplanDesktop.startupProject().then(result=>acceptOpenedProject(result,"Reopened"));window.flatplanDesktop.onOpen(openProjectFile);window.flatplanDesktop.onSave(()=>saveProjectFile(false));window.flatplanDesktop.onSaveAs(()=>saveProjectFile(true));window.flatplanDesktop.onRestore(restoreProjectBackup);window.flatplanDesktop.onProjectOpened(result=>acceptOpenedProject(result,"Opened"))}else updateFileStatus();
+if(window.flatplanDesktop){window.flatplanDesktop.currentPath().then(updateFileStatus);window.flatplanDesktop.startupProject().then(result=>acceptOpenedProject(result,"Reopened"));window.flatplanDesktop.onOpen(openProjectFile);window.flatplanDesktop.onSave(()=>saveProjectFile(false));window.flatplanDesktop.onSaveAs(()=>saveProjectFile(true));window.flatplanDesktop.onRestore(restoreProjectBackup);window.flatplanDesktop.onProjectOpened(result=>acceptOpenedProject(result,"Opened"));setInterval(()=>window.flatplanDesktop.currentPath().then(filePath=>{if(filePath)saveProjectFile(false)}),300000)}else updateFileStatus();
 window.addEventListener("focus",renderSchedule);render();

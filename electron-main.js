@@ -87,16 +87,17 @@ ipcMain.handle("flatplan:export-text",async(_event,{name,content,type="text"})=>
 ipcMain.handle("flatplan:notify",(_event,{title,body})=>{if(Notification.isSupported())new Notification({title,body}).show();return true});
 
 function createMenu(){
-  const template=[{label:"File",submenu:[{label:"Open…",accelerator:"CmdOrCtrl+O",click:()=>send("flatplan:request-open")},{label:"Save",accelerator:"CmdOrCtrl+S",click:()=>send("flatplan:request-save")},{label:"Save As…",accelerator:"CmdOrCtrl+Shift+S",click:()=>send("flatplan:request-save-as")},{label:"Restore Backup…",click:()=>send("flatplan:request-restore")},{type:"separator"},{role:"close"}]}];
+  const template=[{label:"File",submenu:[{label:"Open…",accelerator:"CmdOrCtrl+O",click:()=>send("flatplan:request-open")},{label:"Save",accelerator:"CmdOrCtrl+S",click:()=>send("flatplan:request-save")},{label:"Save As…",accelerator:"CmdOrCtrl+Shift+S",click:()=>send("flatplan:request-save-as")},{label:"Restore Backup…",click:()=>send("flatplan:request-restore")},{type:"separator"},{role:"close"}]},{label:"Edit",submenu:[{role:"undo"},{role:"redo"},{type:"separator"},{role:"cut"},{role:"copy"},{role:"paste"},{role:"pasteAndMatchStyle"},{role:"delete"},{role:"selectAll"}]}];
   if(process.platform==="darwin")template.unshift({label:app.name,submenu:[{role:"about"},{type:"separator"},{role:"services"},{type:"separator"},{role:"hide"},{role:"hideOthers"},{role:"unhide"},{type:"separator"},{role:"quit"}]});
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 function createWindow(){
-  mainWindow=new BrowserWindow({width:1500,height:980,minWidth:900,minHeight:650,backgroundColor:"#f4f2ec",title:"Flatplan",icon:path.join(__dirname,"assets","icon.png"),webPreferences:{preload:path.join(__dirname,"preload.js"),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  mainWindow=new BrowserWindow({width:1500,height:980,minWidth:900,minHeight:650,backgroundColor:"#f4f2ec",title:"Flatplan",icon:path.join(__dirname,"assets","icon.png"),webPreferences:{preload:path.join(__dirname,"preload.js"),contextIsolation:true,nodeIntegration:false,sandbox:true,spellcheck:true}});
   mainWindow.loadFile("index.html");
   mainWindow.webContents.setWindowOpenHandler(()=>({action:"deny"}));
   mainWindow.webContents.on("will-navigate",event=>event.preventDefault());
+  mainWindow.webContents.on("context-menu",(_event,params)=>{const items=[];if(params.misspelledWord){params.dictionarySuggestions.slice(0,6).forEach(suggestion=>items.push({label:suggestion,click:()=>mainWindow.webContents.replaceMisspelling(suggestion)}));if(items.length)items.push({type:"separator"})}if(params.isEditable)items.push({role:"cut"},{role:"copy"},{role:"paste"},{type:"separator"},{role:"selectAll"});else if(params.selectionText)items.push({role:"copy"});if(items.length)Menu.buildFromTemplate(items).popup({window:mainWindow})});
   mainWindow.webContents.once("did-finish-load",async()=>{if(pendingOpenPath){const filePath=pendingOpenPath;pendingOpenPath="";try{send("flatplan:project-opened",await openProjectAt(filePath))}catch(error){dialog.showErrorBox("Could not open Flatplan project",error.message)}}});
   mainWindow.on("closed",()=>{mainWindow=null});
 }
