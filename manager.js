@@ -1,4 +1,14 @@
 const settingsDialog=document.querySelector("#settingsDialog");
+let settingsChecklistDraft=[];
+
+function collectSettingsChecklist(){return [...document.querySelectorAll("[data-settings-review-id]")].map(input=>({id:input.dataset.settingsReviewId,label:input.value.trim()}))}
+
+function renderSettingsChecklist(items=settingsChecklistDraft){
+  settingsChecklistDraft=items;
+  document.querySelector("#settingsReviewChecklist").innerHTML=items.map((item,index)=>`<div class="settings-review-row"><input required data-settings-review-id="${esc(item.id)}" value="${esc(item.label)}" aria-label="Checklist item ${index+1}"><div class="settings-review-actions"><button type="button" data-review-move="up" data-review-index="${index}" aria-label="Move checklist item up" ${index===0?"disabled":""}>↑</button><button type="button" data-review-move="down" data-review-index="${index}" aria-label="Move checklist item down" ${index===items.length-1?"disabled":""}>↓</button><button type="button" data-review-remove="${index}" aria-label="Remove checklist item" ${items.length===1?"disabled":""}>×</button></div></div>`).join("");
+  document.querySelectorAll("[data-review-remove]").forEach(button=>button.onclick=()=>{const current=collectSettingsChecklist();if(current.length===1)return toast("Keep at least one final review item");current.splice(Number(button.dataset.reviewRemove),1);renderSettingsChecklist(current)});
+  document.querySelectorAll("[data-review-move]").forEach(button=>button.onclick=()=>{const current=collectSettingsChecklist(),from=Number(button.dataset.reviewIndex),to=button.dataset.reviewMove==="up"?from-1:from+1;[current[from],current[to]]=[current[to],current[from]];renderSettingsChecklist(current)});
+}
 
 function renderPublicationList(){
   const sorted=[...library.items].sort((a,b)=>(a.archived-b.archived)||String(b.updatedAt).localeCompare(String(a.updatedAt)));
@@ -15,20 +25,27 @@ function renderPublicationList(){
 }
 
 function openSettings(){
-  state.settings||={accent:"#ff5a36",density:"compact"};
+  normalizePublication(state);
   document.querySelector("#settingsTitle").value=state.title;
   document.querySelector("#settingsAccent").value=state.settings.accent;
   document.querySelector("#settingsDensity").value=state.settings.density;
+  renderSettingsChecklist(structuredClone(state.settings.finalReviewChecklist));
   renderPublicationList();
   if(!settingsDialog.open)settingsDialog.showModal();
 }
 
 document.querySelector("#settingsBtn").onclick=openSettings;
+document.querySelector("#addReviewItemBtn").onclick=()=>{const current=collectSettingsChecklist();current.push({id:uid(),label:"New review requirement"});renderSettingsChecklist(current);document.querySelector("#settingsReviewChecklist .settings-review-row:last-child input")?.select()};
 document.querySelectorAll(".close-settings").forEach(button=>button.onclick=()=>settingsDialog.close());
 document.querySelector("#settingsForm").onsubmit=event=>{
   event.preventDefault();
+  const checklist=collectSettingsChecklist().filter(item=>item.label);if(!checklist.length)return toast("Add at least one final review item");
+  const labels=checklist.map(item=>item.label.toLowerCase());if(new Set(labels).size!==labels.length)return toast("Final review items must be unique");
+  const previousLabels=new Map(state.settings.finalReviewChecklist.map(item=>[item.id,item.label]));
+  const renamedIds=checklist.filter(item=>previousLabels.has(item.id)&&previousLabels.get(item.id)!==item.label).map(item=>item.id);
+  if(renamedIds.length)[...state.pages,...state.covers].forEach(page=>renamedIds.forEach(id=>delete page.reviewChecks?.[id]));
   state.title=document.querySelector("#settingsTitle").value.trim()||"Untitled publication";
-  state.settings={accent:document.querySelector("#settingsAccent").value,density:document.querySelector("#settingsDensity").value};
+  state.settings={...state.settings,accent:document.querySelector("#settingsAccent").value,density:document.querySelector("#settingsDensity").value,finalReviewChecklist:checklist};
   save();render();settingsDialog.close();toast("Publication settings saved");
 };
 document.querySelector("#newPublicationBtn").onclick=()=>{
