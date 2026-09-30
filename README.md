@@ -13,7 +13,11 @@ A self-hosted editorial pitch desk and production flatplan for annual reports an
 - Search and filter the editorial plan
 - Open and save complete `.flatplan` workspace files
 - Automatic saving after a project file has been selected
+- Automatic reopening of the last project
+- Timestamped local backups with **File → Restore Backup**
+- Protection when the project file changes outside Flatplan
 - Native macOS Open, Save, and Save As dialogs and keyboard shortcuts
+- Finder file association and a custom Flatplan app icon
 - Browser storage fallback when the desktop wrapper is not used
 - Responsive layout for desktop and mobile
 
@@ -37,7 +41,7 @@ npm install
 npm run dist:mac
 ```
 
-The signed-independent DMG and ZIP are created in `dist/`. Because this project does not include an Apple Developer signing identity, macOS may require a right-click → **Open** the first time the app is launched. Add signing and notarization credentials before distributing it broadly.
+The universal DMG and ZIP are created in `dist/` and run on Apple Silicon or Intel Macs. Because this project does not include an Apple Developer signing identity, macOS may require a right-click → **Open** the first time the app is launched. Add signing and notarization credentials before distributing it broadly; electron-builder will use standard Apple signing and notarization environment variables when they are available.
 
 The app is fully local: it does not start a server, send publication data to a service, or require a hosted database.
 
@@ -56,4 +60,4 @@ GitHub will display the published URL when deployment completes.
 
 ## Project file format
 
-Each `.flatplan` file is readable JSON containing the current publication, archived publications, deadlines, page reviews, pitches, layouts, and settings. Writes are performed through a temporary file and rename so an interrupted save is less likely to corrupt the project.
+Each `.flatplan` file is readable JSON containing the current publication, archived publications, deadlines, page reviews, pitches, layouts, and settings. Writes are performed through a temporary file and rename so an interrupted save is less likely to corrupt the project. Before overwriting, Flatplan saves the prior version beside the project in a hidden `.flatplan-backups` folder and retains the latest 20 versions.

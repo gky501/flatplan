@@ -7,7 +7,8 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist:mac": "electron-builder --mac dmg zip"
+    "dist:mac": "electron-builder --mac dmg zip --universal",
+    "dist:mac:arm64": "electron-builder --mac dmg zip --arm64"
   },
   "devDependencies": {
     "electron": "^38.2.1",
@@ -19,6 +20,7 @@
     "asar": true,
     "files": [
       "app.js",
+      "assets/**/*",
       "electron-main.js",
       "index.html",
       "manager.js",
@@ -28,11 +30,21 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "icon": "assets/icon.png",
       "target": [
         "dmg",
         "zip"
       ]
     },
+    "fileAssociations": [
+      {
+        "ext": "flatplan",
+        "name": "Flatplan Project",
+        "description": "Flatplan publication workspace",
+        "role": "Editor",
+        "icon": "assets/icon.png"
+      }
+    ],
     "dmg": {
       "title": "Flatplan ${version}"
     }
