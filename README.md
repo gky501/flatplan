@@ -1,6 +1,6 @@
 # Annual Report Flatplan
 
-A browser-based editorial pitch desk and production flatplan for annual reports and magazines.
+A self-hosted editorial pitch desk and production flatplan for annual reports and magazines. It runs as a macOS desktop app and stores the complete workspace in a local file selected by the user.
 
 ## Features
 
@@ -11,14 +11,39 @@ A browser-based editorial pitch desk and production flatplan for annual reports 
 - Validate that the interior page count is a multiple of four
 - Switch between spreads and individual pages
 - Search and filter the editorial plan
-- Import and export complete flatplan JSON files
-- Export the plan as JSON
-- Automatic local browser storage
+- Open and save complete `.flatplan` workspace files
+- Automatic saving after a project file has been selected
+- Native macOS Open, Save, and Save As dialogs and keyboard shortcuts
+- Browser storage fallback when the desktop wrapper is not used
 - Responsive layout for desktop and mobile
 
-## Run locally
+## Run the macOS app during development
 
-Open `index.html` in a browser. No install or build step is required.
+Requires Node.js 20 or newer.
+
+```sh
+npm install
+npm start
+```
+
+Choose **Save** or **Save As** and select where the `.flatplan` project file should live. From then on, edits are written to that file automatically. **Open file** can load either a `.flatplan` workspace or an older exported `.json` publication.
+
+## Build the installable Mac app
+
+Run this command on a Mac:
+
+```sh
+npm install
+npm run dist:mac
+```
+
+The signed-independent DMG and ZIP are created in `dist/`. Because this project does not include an Apple Developer signing identity, macOS may require a right-click → **Open** the first time the app is launched. Add signing and notarization credentials before distributing it broadly.
+
+The app is fully local: it does not start a server, send publication data to a service, or require a hosted database.
+
+## Browser-only mode
+
+Open `index.html` in a browser. The app falls back to browser storage and downloads `.flatplan` files when Save is selected.
 
 ## Publish with GitHub Pages
 
@@ -29,6 +54,6 @@ Open `index.html` in a browser. No install or build step is required.
 
 GitHub will display the published URL when deployment completes.
 
-## Data
+## Project file format
 
-Changes are saved in the current browser using `localStorage`. Export a JSON copy when you need a backup or handoff.
+Each `.flatplan` file is readable JSON containing the current publication, archived publications, deadlines, page reviews, pitches, layouts, and settings. Writes are performed through a temporary file and rename so an interrupted save is less likely to corrupt the project.
