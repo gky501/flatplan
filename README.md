@@ -21,6 +21,7 @@ A self-hosted editorial pitch desk and production flatplan for annual reports an
 - Browser storage fallback when the desktop wrapper is not used
 - Responsive layout for desktop and mobile
 - Production dashboard, assigned deadlines and reviews, dated notes, and activity history
+- Shared ownership for editorial items, owner progress reporting, and required item completion before print-ready lock
 - macOS deadline reminders, print-ready locking, bulk tools, undo/redo, and keyboard shortcuts
 - Publication templates, edition duplication, and archived-publication search
 - Relative links to InDesign-folder assets with thumbnails, version labels, and missing-file warnings
