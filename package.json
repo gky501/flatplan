@@ -1,6 +1,6 @@
 {
   "name": "flatplan-desktop",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Self-hosted publication planning for macOS",
   "author": "Flatplan",
   "main": "electron-main.js",
