@@ -84,6 +84,17 @@ ipcMain.handle("flatplan:current-path",()=>currentFilePath);
 ipcMain.handle("flatplan:select-assets",async()=>{const result=await dialog.showOpenDialog(mainWindow,{title:"Link production assets",properties:["openFile","multiSelections"],filters:[{name:"Production assets",extensions:["indd","idml","pdf","jpg","jpeg","png","tif","tiff","psd","ai","svg"]},{name:"All files",extensions:["*"]}]});if(result.canceled)return{canceled:true,files:[]};const base=currentFilePath?path.dirname(currentFilePath):"";return{canceled:false,files:await Promise.all(result.filePaths.map(async filePath=>{const stat=await fs.stat(filePath);return{name:path.basename(filePath),path:filePath,relativePath:base?path.relative(base,filePath):filePath,version:"v1",modifiedAt:stat.mtime.toISOString(),size:stat.size,exists:true}}))}});
 ipcMain.handle("flatplan:check-assets",async(_event,assets=[])=>Promise.all(assets.map(async asset=>{const relativeCandidate=currentFilePath&&asset.relativePath?path.resolve(path.dirname(currentFilePath),asset.relativePath):"",candidate=relativeCandidate&&await exists(relativeCandidate)?relativeCandidate:asset.path||relativeCandidate;return{...asset,path:candidate,exists:Boolean(candidate&&await exists(candidate))}})));
 ipcMain.handle("flatplan:export-text",async(_event,{name,content,type="text"})=>{const extensions=type==="csv"?["csv"]:type==="json"?["json"]:type==="html"?["html"]:["txt"];const result=await dialog.showSaveDialog(mainWindow,{title:"Export Flatplan production file",defaultPath:name,filters:[{name:`${type.toUpperCase()} file`,extensions}],properties:["createDirectory","showOverwriteConfirmation"]});if(result.canceled||!result.filePath)return{canceled:true};await fs.writeFile(result.filePath,content,"utf8");return{canceled:false,filePath:result.filePath}});
+ipcMain.handle("flatplan:rewrite-production-outputs",async(_event,outputs=[])=>{
+  if(!currentFilePath)return{skipped:true};
+  const directory=path.join(path.dirname(currentFilePath),"Production Center");
+  await fs.mkdir(directory,{recursive:true});
+  for(const output of outputs){
+    const name=path.basename(String(output.name||"output.txt")),target=path.join(directory,name),temporary=`${target}.tmp`;
+    await fs.writeFile(temporary,String(output.content??""),"utf8");
+    await fs.rename(temporary,target);
+  }
+  return{skipped:false,directory,count:outputs.length,updatedAt:new Date().toISOString()};
+});
 ipcMain.handle("flatplan:notify",(_event,{title,body})=>{if(Notification.isSupported())new Notification({title,body}).show();return true});
 
 function createMenu(){
