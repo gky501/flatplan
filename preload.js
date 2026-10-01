@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld("flatplanDesktop",{
   exportText:payload=>ipcRenderer.invoke("flatplan:export-text",payload),
   rewriteProductionOutputs:outputs=>ipcRenderer.invoke("flatplan:rewrite-production-outputs",outputs),
   notify:(title,body)=>ipcRenderer.invoke("flatplan:notify",{title,body}),
+  openExternal:url=>ipcRenderer.invoke("flatplan:open-external",url),
   onOpen:callback=>ipcRenderer.on("flatplan:request-open",()=>callback()),
   onSave:callback=>ipcRenderer.on("flatplan:request-save",()=>callback()),
   onSaveAs:callback=>ipcRenderer.on("flatplan:request-save-as",()=>callback()),
