@@ -1,4 +1,4 @@
-const {app,BrowserWindow,dialog,ipcMain,Menu,Notification}=require("electron");
+const {app,BrowserWindow,dialog,ipcMain,Menu,Notification,shell}=require("electron");
 const fs=require("node:fs/promises");
 const path=require("node:path");
 
@@ -96,6 +96,7 @@ ipcMain.handle("flatplan:rewrite-production-outputs",async(_event,outputs=[])=>{
   return{skipped:false,directory,count:outputs.length,updatedAt:new Date().toISOString()};
 });
 ipcMain.handle("flatplan:notify",(_event,{title,body})=>{if(Notification.isSupported())new Notification({title,body}).show();return true});
+ipcMain.handle("flatplan:open-external",async(_event,value)=>{try{const url=new URL(String(value||""));if(!["http:","https:"].includes(url.protocol))return false;await shell.openExternal(url.href);return true}catch{return false}});
 
 function createMenu(){
   const template=[{label:"File",submenu:[{label:"Open…",accelerator:"CmdOrCtrl+O",click:()=>send("flatplan:request-open")},{label:"Save",accelerator:"CmdOrCtrl+S",click:()=>send("flatplan:request-save")},{label:"Save As…",accelerator:"CmdOrCtrl+Shift+S",click:()=>send("flatplan:request-save-as")},{label:"Restore Backup…",click:()=>send("flatplan:request-restore")},{type:"separator"},{role:"close"}]},{label:"Edit",submenu:[{role:"undo"},{role:"redo"},{type:"separator"},{role:"cut"},{role:"copy"},{role:"paste"},{role:"pasteAndMatchStyle"},{role:"delete"},{role:"selectAll"}]}];
