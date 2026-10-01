@@ -51,11 +51,19 @@ function openSettings(){
   if(!settingsDialog.open)settingsDialog.showModal();
 }
 
-document.querySelector("#settingsBtn").onclick=openSettings;
+function selectSettingsTab(name){
+  document.querySelectorAll("[data-settings-tab]").forEach(button=>button.classList.toggle("active",button.dataset.settingsTab===name));
+  document.querySelectorAll("[data-settings-pane]").forEach(pane=>pane.classList.toggle("active",pane.dataset.settingsPane===name));
+  document.querySelector("#settingsForm").classList.toggle("show-savebar",name!=="publications");
+}
+document.querySelectorAll("[data-settings-tab]").forEach(button=>button.onclick=()=>selectSettingsTab(button.dataset.settingsTab));
+
+document.querySelector("#settingsBtn").onclick=()=>{selectSettingsTab("general");openSettings()};
+document.querySelector("#settingsDensity").onchange=event=>document.documentElement.dataset.density=event.target.value;
 document.querySelector("#addOwnerBtn").onclick=()=>{const current=collectSettingsOwners();current.push("");renderSettingsOwners(current);document.querySelector("#settingsOwnerList .settings-owner-row:last-child input")?.focus()};
 document.querySelector("#addReviewItemBtn").onclick=()=>{const current=collectSettingsChecklist();current.push({id:uid(),label:"New review requirement"});renderSettingsChecklist(current);document.querySelector("#settingsReviewChecklist .settings-review-row:last-child input")?.select()};
 document.querySelector("#addSectionBtn").onclick=()=>{state.sections.push({id:`section-${uid()}`,name:`Section ${state.sections.length+1}`,color:"#667085"});save();render();document.querySelector(".section-manager")?.setAttribute("open","");document.querySelector("#sectionManagerList .section-manager-row:last-child [data-section-name]")?.select();toast("Section added")};
-document.querySelectorAll(".close-settings").forEach(button=>button.onclick=()=>settingsDialog.close());
+document.querySelectorAll(".close-settings").forEach(button=>button.onclick=()=>{document.documentElement.dataset.density=state.settings.density;settingsDialog.close()});
 document.querySelector("#settingsForm").onsubmit=event=>{
   event.preventDefault();
   const owners=collectSettingsOwners().filter(Boolean),ownerKeys=owners.map(owner=>owner.toLocaleLowerCase());if(new Set(ownerKeys).size!==ownerKeys.length)return toast("Each owner name must be unique");
