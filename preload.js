@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld("flatplanDesktop",{
   selectAssets:()=>ipcRenderer.invoke("flatplan:select-assets"),
   checkAssets:assets=>ipcRenderer.invoke("flatplan:check-assets",assets),
   exportText:payload=>ipcRenderer.invoke("flatplan:export-text",payload),
+  rewriteProductionOutputs:outputs=>ipcRenderer.invoke("flatplan:rewrite-production-outputs",outputs),
   notify:(title,body)=>ipcRenderer.invoke("flatplan:notify",{title,body}),
   onOpen:callback=>ipcRenderer.on("flatplan:request-open",()=>callback()),
   onSave:callback=>ipcRenderer.on("flatplan:request-save",()=>callback()),
