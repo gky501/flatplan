@@ -1,0 +1,54 @@
+{
+  "name": "flatplan-desktop",
+  "version": "1.4.7",
+  "description": "Self-hosted publication planning for macOS",
+  "author": "Flatplan",
+  "main": "electron-main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:mac": "electron-builder --mac dmg zip --universal",
+    "dist:mac:arm64": "electron-builder --mac dmg zip --arm64"
+  },
+  "devDependencies": {
+    "electron": "^38.2.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.flatplan.desktop",
+    "productName": "Flatplan",
+    "asar": true,
+    "files": [
+      "app.js",
+      "assets/**/*",
+      "cleanup.css",
+      "electron-main.js",
+      "index.html",
+      "manager.js",
+      "mems.css",
+      "preload.js",
+      "styles.css",
+      "workflow.js"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "fileAssociations": [
+      {
+        "ext": "flatplan",
+        "name": "Flatplan Project",
+        "description": "Flatplan publication workspace",
+        "role": "Editor",
+        "icon": "assets/icon.png"
+      }
+    ],
+    "dmg": {
+      "title": "Flatplan ${version}"
+    }
+  }
+}
