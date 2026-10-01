@@ -45,6 +45,7 @@ function openSettings(){
   document.querySelector("#settingsTitle").value=state.title;
   document.querySelector("#settingsAccent").value=state.settings.accent;
   document.querySelector("#settingsDensity").value=state.settings.density;
+  document.querySelector("#settingsDigitalDraftUrl").value=state.settings.digitalDraftUrl||"";
   renderSettingsOwners(structuredClone(state.settings.owners));
   renderSettingsChecklist(structuredClone(state.settings.finalReviewChecklist));
   renderPublicationList();
@@ -73,7 +74,8 @@ document.querySelector("#settingsForm").onsubmit=event=>{
   const renamedIds=checklist.filter(item=>previousLabels.has(item.id)&&previousLabels.get(item.id)!==item.label).map(item=>item.id);
   if(renamedIds.length)[...state.pages,...state.covers].forEach(page=>renamedIds.forEach(id=>delete page.reviewChecks?.[id]));
   state.title=document.querySelector("#settingsTitle").value.trim()||"Untitled publication";
-  state.settings={...state.settings,accent:document.querySelector("#settingsAccent").value,density:document.querySelector("#settingsDensity").value,owners,finalReviewChecklist:checklist};
+  const draftInput=document.querySelector("#settingsDigitalDraftUrl"),digitalDraftUrl=draftInput.value.trim();if(digitalDraftUrl){try{const parsed=new URL(digitalDraftUrl);if(!["http:","https:"].includes(parsed.protocol))throw new Error("protocol")}catch{return toast("Enter a complete http:// or https:// digital draft link")}}
+  state.settings={...state.settings,accent:document.querySelector("#settingsAccent").value,density:document.querySelector("#settingsDensity").value,digitalDraftUrl,owners,finalReviewChecklist:checklist};
   save();render();settingsDialog.close();toast("Publication settings saved");
 };
 document.querySelector("#newPublicationBtn").onclick=()=>{
